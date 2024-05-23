@@ -430,6 +430,7 @@ class LectureDetailOnlineView(View):
 
 class LectureDetailOfflineView(View):
     def get(self, request):
+
         member = request.session.get('member')
         lecture_id = request.GET.get('id')
         # print(member, lecture_id)
@@ -495,16 +496,18 @@ class LectureDetailOfflineView(View):
             average_rating = round(review_sum['sum_rating'] / review_sum['count'], 1)
         else:
             average_rating = 0
-
+        times = []
         dates = Date.objects.filter(lecture_id=lecture['id']).values('id', 'date')
-        for date in dates:
-            times = Time.objects.filter(date_id=date['id']).values('id', 'time')
+        for i, date in dates:
+            times[i] = Time.objects.filter(date_id=date['id']).values('id', 'time')
         reviews = LectureReview.objects.filter(lecture_id=lecture['id']) \
             .values('id', 'review_title', 'review_content', 'review_rating', 'member__member_name')
         address = LectureAddress.objects.filter(lecture_id=lecture['id']) \
             .values('id', 'address_city', 'address_district').first()
 
         lecture_count = lectures.count()
+
+
 
         context = {
             'lecture': lecture,
@@ -518,7 +521,7 @@ class LectureDetailOfflineView(View):
             'rating_counts': rating_dict,
             'average_rating': average_rating,
             'lecture_count': lecture_count,
-            'lecture_order_time': times.order_by('time'),
+            'lecture_order_time': times.sort(),
         }
 
         return render(request, 'lecture/web/lecture-detail-offline.html', context)

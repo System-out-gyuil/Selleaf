@@ -1,5 +1,8 @@
+import os
 import random
+from pathlib import Path
 
+import joblib
 from django.db.models import F, Count, Q
 from django.test import TestCase
 import pandas as pd
@@ -11,10 +14,14 @@ from post.models import PostTag
 
 
 class KnowhowTest(TestCase):
+    knowhow_model = joblib.load(
+        os.path.join(Path(__file__).resolve().parent, f'../main/ai/knowhow_ai19.pkl')
+    )
+    knowhow_model.fit('제가 직접 키운 나무 어떤가요 제작년부터 아들이랑 같이 심어본 나무인데 어떠신가요? 쑥쑥 자라더니 이제 키높이만큼 자랐어요', ['정원'])
 
-    knowhow = Knowhow.objects.values_list('id', 'knowhow_title')
-    k_df = pd.DataFrame(list(knowhow), columns=['id', 'knowhow_title'])
-    print(k_df)
+    # knowhow = Knowhow.objects.values_list('id', 'knowhow_title')
+    # k_df = pd.DataFrame(list(knowhow), columns=['id', 'knowhow_title'])
+    # print(k_df)
 
     # print(Member.objects.get(id=19))
     # KnowhowFile.objects.filter(knowhow_id=32).delete()

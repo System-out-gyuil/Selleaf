@@ -187,37 +187,48 @@ class MainView(View):
         if member:
             member_object = Member.objects.get(id=member.get('id'))
 
+        # 회원이 본 노하우 게시글이 3개 이상일 때
         if member_object and KnowhowView.objects.filter(member_id=member_object.id).count() >= 3:
+
+            # 훈련된 개인 모델을 불러옴
             knowhow_model = joblib.load(os.path.join(Path(__file__).resolve().parent, f'ai/knowhow_ai{member_object.id}.pkl'))
 
+            # 최근에 본 세개의 노하우 게시물
             knowhow_id = KnowhowView.objects.filter(member_id=member_object.id).order_by('-id')[:3].values('knowhow_id')
 
+            # 가져온 노하우 게시물의 갯수만큼 반복
             knowhows = [0] * len(knowhow_id)
             probas = [0] * len(knowhow_id)
             for i in range(len(knowhow_id)):
+                # 노하우 게시물의 제목과 내용
                 knowhows[i] = Knowhow.objects.filter(id=knowhow_id[i].get('knowhow_id')).values('knowhow_title', 'knowhow_content')
+                # 제목과 내용을 연결
                 knowhows[i] = (knowhows[i][0]['knowhow_title']) + (knowhows[i][0]['knowhow_content'])
+                # 위에서 연결한 제목과 내용을 개인 모델에 predict_proba를 사용하여 각각의 확률(우선순위)을 구해줌
                 probas[i] = knowhow_model.predict_proba([knowhows[i]])
 
             total_proba = [0] * len(probas[0][0])
             for i in range(len(total_proba)):
+                # 각 노하우 게시물별 확률을 합산
                 total_proba[i] = (probas[0][0][i] + probas[1][0][i] + probas[2][0][i])
 
             print('total_proba', total_proba)
-            # if total_proba[0] == 3:
-            #     total_proba = [2.7, 0.1, 0.1, 0.1]
-
 
             categories = ['꽃', '농촌', '원예', '정원']
             knowhows = []
             np_total_proba = np.array(total_proba)
+            # arg_sort를 통해 인덱싱 및 높은 순 정렬
             argsorted_indices = np_total_proba.argsort()[::-1]
 
+            # 순위별 불러온 게시글 갯수
             amounts = [5, 3, 2, 0]
 
             for i in range(4):
+                # 정렬된 순으로 카테고리를 넣어줌
                 category_name = categories[argsorted_indices[i]]
                 category_amount = amounts[i]
+
+                # 카테고리를 통해 카테고리별 최신순으로 불러옴, 각 카테고리당 amounts의 갯수대로 불러옴
                 knowhows += list(Knowhow.objects.filter(knowhowcategory__category_name=category_name).order_by('-id')[:category_amount]\
                                .annotate(member_profile=F('member__memberprofile__file_url'),
                                          member_name=F('member__member_name')) \

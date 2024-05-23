@@ -88,10 +88,12 @@ class KnowhowDetailView(View):
         knowhow = Knowhow.objects.get(id=request.GET['id'])
         session_member_id = request.session.get('member')
         session_profile = None
+
+        # 로그인 되어있다면
         if session_member_id:
             session_member_id = session_member_id.get('id')
             session_profile = MemberProfile.objects.get(member_id=session_member_id)
-            # ai때문에 추가한 부분
+            # 어느 회원이 어떤 게시글을 보았는지
             KnowhowView.objects.create(knowhow_id=knowhow.id, member_id=session_member_id)
 
             # 개인 모델 불러오기
@@ -113,7 +115,7 @@ class KnowhowDetailView(View):
 
             knowhow_target = target_dict[knowhow_category[0].get('category_name')]
 
-            # 모델 학습
+            # 모델 추가학습
             transformd_features = knowhow_model.named_steps['count_vectorizer'].transform([knowhow_feature])
             knowhow_model.named_steps['nb'].partial_fit(transformd_features, [knowhow_target])
 

@@ -6,7 +6,6 @@ from knowhow.views import KnowhowCreateView, KnowhowDetailView, KnowhowReplyWrit
 
 app_name = 'knowhow'
 
-# asd
 urlpatterns = [
     # 노하우 작성
     path('create/', KnowhowCreateView.as_view(), name='create'),
@@ -14,6 +13,7 @@ urlpatterns = [
     path('detail/', KnowhowDetailView.as_view(), name='detail'),
     # 노하우 수정
     path('update/', KnowhowUpdateView.as_view(), name='update'),
+    # 노하우 삭제
     path('delete/', KnowhowDeleteView.as_view(), name='delete'),
     # 포스트 신고
     path('report/', KnowhowReportView.as_view(), name='report'),
@@ -21,7 +21,9 @@ urlpatterns = [
     path('list/', KnowhowListView.as_view(), name='list'),
     path('list/<int:page>/<str:filters>/<str:sorting>/<str:types>', KnowhowListApi.as_view(), name='list'),
 
+    # 노하우 스크랩
     path('like/scrap/<int:knowhow_id>/<int:member_id>/<str:scrap_status>/', KnowhowScrapApi.as_view(), name='list'),
+    # 노하우 좋아요
     path('like/scrap/<int:knowhow_id>/<int:member_id>/<str:like_status>', KnowhowLikeApi.as_view(), name='list'),
 
     # 댓글
