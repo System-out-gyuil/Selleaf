@@ -17,6 +17,8 @@
 3. 데이터 전처리 및 모델 훈련
 4. 추천 알고리즘의 흐름
 5. 서비스 기대효과
+6. 트러블 슈팅
+7. 느낀점
 
 <br>
 
@@ -269,30 +271,56 @@
 - 유입이 증가하고, 이탈이 적어짐에 따라 전체 유저의 수가 늘어남으로 인해서 자연스럽게 수익이 증가하고,  
   더욱 발전시켜 유료 서비스나 프리미엄 컨텐츠등을 추가하거나 전환하는등 긍정적인 비젼이 생깁니다.
 
+<hr>
+
 ### **6️⃣트러블 슈팅**
 
-1. Jupyter notebook에서 pkl파일로 내보낸 모델을 Pycharm에서 불러오려 할 때 joblib의 load를 통해 불러왔었는데  
-   분명 Jupyter notebook에선 잘 불러와져서 사용이 가능하였었는데 파이참에서 똑같이 사용하였을 경우  
-   **FileNotFoundError: [Errno 2] No such file or directory: 'knowhow_ai.pkl'**  
-   라는 에러가 나타났다.  
-   찾아보니 해당 에러는 설정된 경로에 해당 파일 혹은 폴더가 없다는 에러였다.  
-   따라서 정확한 경로를 설정해주어야 한다고 생각하였고,  
-   **joblib.load(os.path.join(Path(**file**).resolve().parent, 'ai/knowhow_ai19.pkl'))** os.path.join을 통해 경로를 연결하고  
-   Path를 사용하여 파일 시스템에서 경로를 사용할 수 있게 해준 후 resolve()를 통해 절대경로로 변환하고 parent로 부모 폴더로부터 경로를 입력하여 경로를 간소화하고, 이 후 원하는 파일을 불러와 사용해주었습니다.
+### - 경로 에러
+#### 1. 문제 발생
+Jupyter notebook에서 pkl파일로 내보낸 모델을 Pycharm에서 불러오려 할 때 joblib의 load를 통해 불러왔었는데  
+분명 Jupyter notebook에선 잘 불러와져서 사용이 가능하였었는데 파이참에서 똑같이 사용하였을 경우  
+`FileNotFoundError: [Errno 2] No such file or directory: 'knowhow_ai.pkl'`  
+라는 에러가 나타났다.
 
-2. 개인 모델을 추가학습하는 과정에서  
-   **knowhow_model.fit(transformd_features, [knowhow_target])** 으로 불러온 모델에 feature와 target을 넣고 fit하였는데  
-   파이프라인을 불러오지 못하는 문제가 생겼었습니다.  
-   **transformd_features = knowhow_model.named_steps['count_vectorizer'].transform([knowhow_feature])**
-   **knowhow_model.named_steps['nb'].fit(transformd_features, [knowhow_target])**  
-   named_steps를 사용하여 사전훈련모델에 파이프라인으로 사용했던 객체를 각각 가져와서 먼저 feature를 count_vectorizer를 통해  
-   변환한 후 MultinomialNB를 사용하여 추가학습을 진행하였으나  
-   원래 predict하여 나오는 값이  
-   **[2.362991167550716, 0.004116118195193652, 0.6169707099866734, 0.015922004267416696]** 이런식으로  
-   카테고리 하나당 하나씩 확률이 나와야하는데 추가학습 후 확률이 **3.0**으로 고정되어버려서 찾아보니  
-   그냥 fit을 하면 해당 시점에서의 학습된 값 하나로 학습하고 덮어씌워지기 때문에 partial_fit을 사용하여 해결하였습니다.  
-   **transformd_features = knowhow_model.named_steps['count_vectorizer'].transform([knowhow_feature])**
-   **knowhow_model.named_steps['nb'].partial_fit(transformd_features, [knowhow_target])**
+#### 2. 원인 확인
+해당 에러는 설정된 경로에 해당 파일 혹은 폴더가 없다는 에러였다.  
+따라서 정확한 경로를 설정해주어야 한다고 생각하였습니다.   
+
+#### 3. 문제 해결
+`joblib.load(os.path.join(Path(**file**).resolve().parent, 'ai/knowhow_ai19.pkl'))` os.path.join을 통해 경로를 문자로 연결하고  
+Path를 사용하여 파일 시스템에서 경로를 사용할 수 있게 해준 후 resolve()를 통해 절대경로로 변환하고 parent로 부모 폴더로부터 경로를 입력하여 경로를 간소화하고, 이 후 원하는 파일을 불러와 사용해주었습니다.
+
+<hr>
+
+### - 모델 학습 에러(파이프라인, 추가 학습)
+#### 1. 문제 발생
+개인 모델을 추가학습하는 과정에서  
+`knowhow_model.fit(transformd_features, [knowhow_target])` 으로 불러온 모델에 feature와 target을 넣고 fit하였는데  
+파이프라인을 불러오지 못하는 문제가 생겼었습니다.  
+
+#### 2. 원인 확인
+해당 에러는 모델에 사용된 파이프라인에서 각각의 객체를 따로 훈련해주어야 하는데, 모델 자체에 그냥 fit을 하여 발생한 오류였습니다.
+따라서 파이프라인을 하나씩 불러와서 사용해주어야 한다고 생각하였습니다.
+
+#### 3. 문제 해결
+`transformd_features = knowhow_model.named_steps['count_vectorizer'].transform([knowhow_feature])`
+`knowhow_model.named_steps['nb'].fit(transformd_features, [knowhow_target])`  
+named_steps를 사용하여 사전훈련모델에 파이프라인으로 사용했던 객체를 각각 가져와서 먼저 feature를 count_vectorizer를 통해  
+변환시킨 후 MultinomialNB를 사용하여 추가학습을 진행하였습니다.
+
+#### 4. 새로운 문제 발생
+위에에서 추가학습된 모델을 통해 예측하는 값에 이상이 생겼었습니다.
+메인화면에서 개인에게 추천된 게시글을 보여주어야하는데 계속 똑같은 게시글만 나타나는 문제가 있었습니다.
+
+#### 5. 원인 확인
+원래 predict하여 나오는 값이  
+`[2.362991167550716, 0.004116118195193652, 0.6169707099866734, 0.015922004267416696]` 이런식으로  
+카테고리 하나당 하나씩 확률이 나와야하는데 추가학습 이후 확률이 `[3.0]`으로 고정되어버린다는걸 확인하였습니다.
+
+#### 6. 문제 해결
+그냥 fit을 하면 해당 시점에서의 학습된 값 하나로 학습하고 덮어씌워지기 때문에 MultinomialNB모델에서 지원하는 partial_fit을 사용하여 해결하였습니다.  
+`transformd_features = knowhow_model.named_steps['count_vectorizer'].transform([knowhow_feature])`
+`knowhow_model.named_steps['nb'].partial_fit(transformd_features, [knowhow_target])`
 
 <hr>
 
