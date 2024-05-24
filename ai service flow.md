@@ -280,10 +280,10 @@
 Jupyter notebook에서 pkl파일로 내보낸 모델을 Pycharm에서 불러오려 할 때 joblib의 load를 통해 불러왔었는데  
 분명 Jupyter notebook에선 잘 불러와져서 사용이 가능하였었는데 파이참에서 똑같이 사용하였을 경우  
 `FileNotFoundError: [Errno 2] No such file or directory: 'knowhow_ai.pkl'`  
-라는 에러가 나타났다.
+라는 에러가 나타났습니다.
 
 #### 2. 원인 확인
-해당 에러는 설정된 경로에 해당 파일 혹은 폴더가 없다는 에러였다.  
+해당 에러는 설정된 경로에 해당 파일 혹은 폴더가 없다는 에러였습니다.  
 따라서 정확한 경로를 설정해주어야 한다고 생각하였습니다.   
 
 #### 3. 문제 해결
