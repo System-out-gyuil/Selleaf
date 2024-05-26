@@ -226,6 +226,7 @@ class MainView(View):
             for i in range(4):
                 # 정렬된 순으로 카테고리를 넣어줌
                 category_name = categories[argsorted_indices[i]]
+                print(category_name)
                 category_amount = amounts[i]
 
                 # 카테고리를 통해 카테고리별 최신순으로 불러옴, 각 카테고리당 amounts의 갯수대로 불러옴

@@ -66,7 +66,7 @@ INSTALLED_APPS = [
     'rest_framework'
 ]
 
-SITE_ID = 3
+SITE_ID = 9
 
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_LOGOUT_ON_GET = True
